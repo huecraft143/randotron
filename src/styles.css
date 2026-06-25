@@ -1,0 +1,28 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: #04050a; font-family: 'Space Grotesk', sans-serif; }
+input::placeholder, textarea::placeholder { color: #8390b5; opacity: 0.7; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes ringspin { to { transform: rotate(360deg); } }
+@keyframes reveal { from { transform: translateY(14px) scale(0.98); } to { transform: none; } }
+@keyframes pulsefade { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@keyframes pulseRing {
+  0%, 100% { box-shadow: 0 0 0 0px rgba(125,249,255,0.45), 0 0 18px rgba(125,249,255,0.1); }
+  50%       { box-shadow: 0 0 0 7px rgba(125,249,255,0.0),  0 0 32px rgba(125,249,255,0.25); }
+}
+@keyframes modalin {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes scanline {
+  0%   { top: 0%; }
+  100% { top: 110%; }
+}
+@keyframes infcolor {
+  0%   { color: #7df9ff; text-shadow: 0 0 22px #7df9ff99; }
+  33%  { color: #b388ff; text-shadow: 0 0 22px #b388ff99; }
+  66%  { color: #6ef0c0; text-shadow: 0 0 22px #6ef0c099; }
+  100% { color: #7df9ff; text-shadow: 0 0 22px #7df9ff99; }
+}
