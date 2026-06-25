@@ -1,35 +1,18 @@
-name: Deploy
+name: Deploy Worker
 
 on:
   push:
     branches: [main]
 
 jobs:
-  deploy:
+  deploy-worker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Deploy Worker (proxy)
+      - name: Deploy QRNG proxy Worker
         working-directory: proxy
         run: npx wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
-      - name: Build frontend
-        run: |
-          npm ci
-          npm run build
-        env:
-          VITE_QRNG_PROXY_URL: ${{ secrets.VITE_QRNG_PROXY_URL }}
-
-      - name: Deploy Pages
-        run: npx wrangler pages deploy dist --project-name=randotron
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
