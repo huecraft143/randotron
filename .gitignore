@@ -5,3 +5,9 @@ dist
 *.local
 *.Zone.Identifier
 proxy/.dev.vars
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
