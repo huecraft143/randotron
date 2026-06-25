@@ -1,4 +1,6 @@
-# ALEA — True Randomness Engine (React)
+# Randotron — True Randomness Engine
+
+**Live:** https://randotron.mattiapalano11.workers.dev
 
 A decision helper that lets people choose by drawing on **genuine quantum
 randomness** — "the only true randomness, the randomness of the universe."
@@ -40,42 +42,44 @@ Flow per decision: user input → **extraction** animation (spinning rings +
 streaming hex) with a minimum suspense time → **reveal** of the result, the raw
 entropy bytes used, and the source (`LIVE` or `LOCAL`).
 
+## Architecture
+
+The frontend calls a **Cloudflare Worker proxy** (`proxy/`) which holds the
+QRNG API key server-side and forwards requests to `qrngapi.com`. This avoids
+exposing the key in the browser bundle.
+
+- **Proxy Worker:** https://randotron-qrng-proxy.mattiapalano11.workers.dev
+- **Frontend:** https://randotron.mattiapalano11.workers.dev
+
 ## The randomness source
 
 - **Primary:** [QRNG API](https://qrngapi.com) — certified quantum entropy.
   Called via `POST https://qrngapi.com/api/random` with `{ bytes, format:"hex" }`
-  and an `X-API-Key` header. Response field used: `entropy` (hex string).
+  and an `X-API-Key` header. Response field used: `data` (hex string).
 - **Fallback:** `crypto.getRandomValues` — used on any error, timeout (4s), or
-  CORS block. Triggered automatically; the header pill flips to `LOCAL · CSPRNG`.
+  unreachable proxy. Triggered automatically; the header pill flips to `LOCAL · CSPRNG`.
 
 All of this lives in `src/qrng.js`. Swapping in a different randomness provider
 means editing only that one file.
 
-### ⚠️ Security — read before deploying
+## CI/CD
 
-`qrngapi.com` requires an API key. **Any `VITE_`-prefixed env var is bundled
-into the client and is therefore public.** Shipping the key in the browser
-exposes it to anyone.
+Push to `main` → GitHub Actions deploys the Worker proxy → Cloudflare rebuilds
+the frontend automatically.
 
-For production, put the key behind your own backend and proxy the request:
-
-1. Create a server route (e.g. `/api/random`) that holds the key server-side
-   and forwards the call to `qrngapi.com`, returning the JSON.
-2. Set `VITE_QRNG_PROXY_URL` to that route. When a proxy URL is present,
-   `qrng.js` calls it **without** sending the key from the client.
-
-For local dev / demos, calling the API directly with a throwaway key is fine —
-just know it's visible, and that browser CORS may block the direct call (in
-which case you'll see the `LOCAL` fallback).
+Required GitHub secrets: `CF_API_TOKEN`, `CF_ACCOUNT_ID`, `VITE_QRNG_PROXY_URL`.
 
 ## Project structure
 
 ```
-design_handoff_alea/
+randotron/
 ├── index.html              # Vite entry; loads Google Fonts
 ├── package.json
 ├── vite.config.js
-├── .env.example            # copy to .env and add your key
+├── .env.example            # copy to .env and add your key (local dev only)
+├── proxy/
+│   ├── index.js            # Cloudflare Worker proxy for qrngapi.com
+│   └── wrangler.toml       # Worker config
 └── src/
     ├── main.jsx            # React root
     ├── App.jsx             # the whole UI (Universe theme)
@@ -83,9 +87,6 @@ design_handoff_alea/
     ├── useStarfield.js     # animated canvas background hook
     └── styles.css          # resets + keyframes only
 ```
-
-`reference/Alea.prototype.html` is the original HTML prototype this project was
-ported from — open it in a browser to compare look & behavior.
 
 ## Design tokens (Universe theme)
 
@@ -98,18 +99,3 @@ All applied as CSS custom properties on the root element in `App.jsx` (`THEME`).
 - Panel: `rgba(12,18,38,0.55)` + `blur(14px)`, border `rgba(125,249,255,0.26)`
 - Radius: `7px` · Card shadow: `0 24px 70px rgba(0,0,0,0.5)`
 - Fonts: **Space Grotesk** (headings/body), **IBM Plex Mono** (data/labels)
-
-## Notes for the implementer
-
-- This is **high-fidelity**: colors, type, spacing, and motion are final.
-  Reproduce them as-is, or map them onto your codebase's design system.
-- Styling is inline style objects (no CSS framework) so the port is
-  self-contained; move it to your styling solution (CSS Modules, Tailwind,
-  styled-components…) as your project prefers.
-- The background animation runs on a `<canvas>` via `requestAnimationFrame`
-  (`useStarfield.js`) and cleans itself up on unmount.
-- `SUSPENSE_MS` in `App.jsx` controls the minimum extraction time (1600ms).
-- The original prototype had three themes (Universe / Ocean / Geothermal); the
-  shipped site — and this port — use **Universe only**. The other palettes are
-  preserved in `reference/Alea.prototype.html` if you ever want to restore them.
-```
