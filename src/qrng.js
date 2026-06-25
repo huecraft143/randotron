@@ -49,7 +49,7 @@ export async function fetchBytes(n) {
     clearTimeout(to);
 
     const j = await r.json();
-    const hex = j && j.entropy;
+    const hex = j && (j.entropy || j.data);
     if (typeof hex !== 'string' || hex.length < n * 2) return fallbackBytes(n);
 
     const bytes = [];
